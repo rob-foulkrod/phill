@@ -1,0 +1,62 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  buildConfiguration: 'Release'
+  solutionPath: './src/src.sln'
+  testProjectPath: './src/Aura.Web.Tests/Aura.Web.Tests.csproj'
+  appProjectPath: './src/Aura.Web/Aura.Web.csproj'
+
+steps:
+
+- checkout: self
+  clean: true
+  fetchDepth: 1
+
+- task: UseDotNet@2
+  displayName: 'Install .NET 9.x SDK'
+  inputs:
+    packageType: 'sdk'
+    version: '9.x'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Restore NuGet packages'
+  inputs:
+    command: 'restore'
+    projects: '$(solutionPath)'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Build the project'
+  inputs:
+    command: 'build'
+    projects: '$(solutionPath)'
+    arguments: '--configuration $(buildConfiguration) --no-restore'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Run tests with coverage threshold'
+  inputs:
+    command: 'test'
+    projects: '$(testProjectPath)'
+    arguments: >
+      --configuration $(buildConfiguration)
+      /p:CollectCoverage=true
+      /p:CoverletOutputFormat=cobertura
+      /p:Threshold=30
+      /p:ThresholdType=line
+
+- task: DotNetCoreCLI@2
+  displayName: 'Publish the project'
+  inputs:
+    command: 'publish'
+    projects: '$(appProjectPath)'
+    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/publish'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish published artifacts'
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/publish'
+    ArtifactName: 'publish'
+    publishLocation: 'Container'
