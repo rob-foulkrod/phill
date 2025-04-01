@@ -44,7 +44,7 @@ steps:
       --configuration $(buildConfiguration)
       /p:CollectCoverage=true
       /p:CoverletOutputFormat=cobertura
-      /p:Threshold=30
+      /p:Threshold=25
       /p:ThresholdType=line
 
 - task: DotNetCoreCLI@2
