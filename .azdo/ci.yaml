@@ -48,6 +48,14 @@ steps:
       /p:Threshold=25
       /p:ThresholdType=line
 
+#Collect the published results of code coverage from the temporary directory and publish them as artifacts
+- task: PublishCodeCoverageResults@1
+  displayName: 'Publish code coverage results'
+  inputs:
+    codeCoverageTool: 'cobertura'
+    codeCoverageDirectory: '$(Agent.TempDirectory)/coverage.cobertura.xml'
+    reportDirectory: '$(Agent.TempDirectory)/coverage.cobertura.xml'
+
 - task: DotNetCoreCLI@2
   displayName: 'Publish the project'
   inputs:
