@@ -48,16 +48,10 @@ steps:
       /p:Threshold=25
       /p:ThresholdType=line
 
-- script: tree
-  workingDirectory: $(Agent.TempDirectory)
-
-
-- task: PublishCodeCoverageResults@1
-  displayName: 'Publish code coverage results'
+- task: PublishCodeCoverageResults@2
+  displayName: 'Publish code coverage'
   inputs:
-    codeCoverageTool: 'cobertura'
-    summaryFileLocation: 
-    reportDirectory: '$(Agent.TempDirectory)/coverage.cobertura.xml'
+    summaryFileLocation: $(Agent.TempDirectory)/*/coverage.cobertura.xml 
 
 - task: DotNetCoreCLI@2
   displayName: 'Publish the project'
