@@ -1,0 +1,125 @@
+name: aura/MultiStageCICD
+on:
+  push:
+    branches:
+    - main
+env:
+  BuildConfiguration: Release
+  BuildParameters_RestoreBuildProjects: "./src/src.sln"
+  BuildParameters_TestProjects: "./src/**/*[Tt]ests/*.csproj"
+  app_BuildProjects: "./src/Aura.Web/Aura.Web.csproj"
+  isMain: "$[eq(variables['Build.SourceBranch'], 'refs/heads/main')]"
+  productionEnvironmentName: auraProductionEnvironment
+  resourceGroup: rg-aura-azdo
+  serviceConnection: aura-web
+  stagingSlotName: staging
+  validationEnvironmentName: auraValidationEnvironment
+  validationSlotName: test
+  webAppName: aura-web-400
+jobs:
+  build-CI:
+    name: CI
+    runs-on: ubuntu-latest
+    env:
+      appProjectPath: "./src/Aura.Web/Aura.Web.csproj"
+      buildConfiguration: Release
+      solutionPath: "./src/src.sln"
+      testProjectPath: "./src/Aura.Web.Tests/Aura.Web.Tests.csproj"
+    steps:
+    - name: checkout
+      uses: actions/checkout@v4.1.0
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 1
+    - name: Install .NET 9.x SDK
+      uses: actions/setup-dotnet@v4.0.0
+      with:
+        dotnet-version: 9.x
+    - name: Restore NuGet packages
+      run: dotnet restore ${{ env.solutionPath }}
+    - name: Build the project
+      run: dotnet build ${{ env.solutionPath }} --configuration ${{ env.buildConfiguration }} --no-restore
+    - name: Run tests with coverage threshold
+      run: dotnet test ${{ env.testProjectPath }} --logger trx --results-directory "${{ runner.temp }}" --configuration ${{ env.buildConfiguration }} /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:Threshold=25 /p:ThresholdType=line
+    - name: Run tests with coverage threshold
+      uses: NasAmin/trx-parser@v0.5.0
+      if: always()
+      with:
+        TRX_PATH: "${{ runner.temp }}"
+        REPO_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+#     # This item has no matching transformer
+#     - task: PublishCodeCoverageResults@2
+#       displayName: Publish code coverage
+#       inputs:
+#         summaryFileLocation: "./src/Aura.Web.Tests/coverage.cobertura.xml"
+  build-Publish:
+    name: Publish
+    needs:
+    - build-CI
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout
+      uses: actions/checkout@v4.1.0
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 1
+    - name: Production Complilation
+      run: dotnet publish ${{ env.app_BuildProjects }} --configuration ${{ env.BuildConfiguration }} --output ${{ runner.temp }}
+    - name: Upload Artifact
+      if: success() || failure()
+      uses: actions/upload-artifact@v4.1.0
+      with:
+        name: app
+        path: "${{ runner.temp }}"
+  deployToValidation-DeployToStaging:
+    name: Deploy To ${{ variables.validationSlotName }} slot
+    needs:
+    - build-CI
+    - build-Publish
+    runs-on: ubuntu-latest
+    environment:
+      name: "${{ env.validationEnvironmentName }}"
+    if: github.RUN_NUMBER == 1
+    steps:
+    - name: checkout
+      uses: actions/checkout@v4.1.0
+    - name: download artifact
+      uses: actions/download-artifact@v4.1.0
+    - name: Where Am I
+      run: tree
+      shell: bash
+      working-directory: "${{ runner.workspace }}"
+    - name: Deploy App To Test
+      uses: azure/login@v1.6.0
+      with:
+        creds: "${{ secrets.AZURE_CREDENTIALS }}"
+    - name: Deploy App To Test
+      uses: azure/webapps-deploy@v3.0.0
+      with:
+        app-name: "${{ env.webAppName }}"
+        package: "${{ runner.workspace }}/app/*.zip"
+        slot-name: "${{ env.validationSlotName }}"
+  deployToProd-webDeployToProd:
+    name: Deploy To Prod
+    needs:
+    - deployToValidation-DeployToStaging
+    runs-on: ubuntu-latest
+    environment:
+      name: "${{ env.productionEnvironmentName }}"
+    if: (success() && env.isMain == 'true') && github.RUN_NUMBER == 1
+    steps:
+    - name: checkout
+      uses: actions/checkout@v4.1.0
+    - name: download artifact
+      uses: actions/download-artifact@v4.1.0
+    - uses: azure/login@v1.6.0
+      with:
+        creds: "${{ secrets.AZURE_CREDENTIALS }}"
+    - uses: azure/webapps-deploy@v3.0.0
+      with:
+        app-name: "${{ env.webAppName }}"
+        package: "${{ runner.workspace }}/app/*.zip"
+        slot-name: "${{ env.stagingSlotName }}"
+    - uses: azure/cli@v1.0.8
+      with:
+        inlineScript: az webapp deployment slot swap --name "${{ env.webAppName }}" --resource-group "${{ env.resourceGroup }}" --subscription "${{ env.serviceConnection }}" --slot "${{ env.stagingSlotName }}" --preserve-vnet false
