@@ -27,12 +27,9 @@ env:
   app_BuildProjects: "./src/Aura.Web/Aura.Web.csproj"
   isMain: "$[eq(variables['Build.SourceBranch'], 'refs/heads/main')]"
   productionEnvironmentName: auraProductionEnvironment
-  resourceGroup: rg-aura-azdo
-  serviceConnection: aura-web
+  resourceGroup: rg-aura-gh
   stagingSlotName: staging
-  validationEnvironmentName: auraValidationEnvironment
-  validationSlotName: test
-  webAppName: aura-web-400
+  webAppName: aurawebgh
 jobs:
   build-CI:
     name: CI
@@ -56,10 +53,7 @@ jobs:
       run: dotnet build ${{ env.solutionPath }} --configuration ${{ env.buildConfiguration }} --no-restore
     - name: Run tests with coverage threshold
       run: dotnet test ${{ env.testProjectPath }} --logger trx --results-directory "${{ runner.temp }}" --configuration ${{ env.buildConfiguration }} /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:Threshold=25 /p:ThresholdType=line
-    - name: Upload Code Coverage Report
-      uses: coverallsapp/github-action@v1
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+
 
   build-LintBicep:
     name: Lint Bicep Files
@@ -153,10 +147,6 @@ jobs:
       run: pwsh -File "${{ runner.workspace }}/infra/deploy.ps1"
       shell: pwsh
       working-directory: "${{ runner.workspace }}/infra/"
-      
-    - name: Print Environment Variables
-      run: printenv
-      shell: bash
 
     - name: Deploy App To Test
       uses: azure/webapps-deploy@v3.0.0
@@ -198,6 +188,7 @@ jobs:
         app-name: "${{ env.webAppName }}"
         package: "${{ runner.workspace }}/app/" 
         slot-name: "${{ env.stagingSlotName }}"
+        
     - uses: azure/cli@v1.0.8
       with:
-        inlineScript: az webapp deployment slot swap --name "${{ env.webAppName }}" --resource-group "${{ env.resourceGroup }}" --subscription "${{ env.serviceConnection }}" --slot "${{ env.stagingSlotName }}" --preserve-vnet false
+        inlineScript: az webapp deployment slot swap --name "${{ env.webAppName }}" --resource-group "${{ env.resourceGroup }}"  --slot "${{ env.stagingSlotName }}" --preserve-vnet false
