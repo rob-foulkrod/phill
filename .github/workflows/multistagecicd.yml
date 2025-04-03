@@ -117,7 +117,7 @@ jobs:
         name: infra
         path: "./infra"
   deployToValidation-DeployToStaging:
-    name: Deploy To ${{ variables.validationSlotName }} slot
+    name: Deploy To test
     needs:
     - build-CI
     - build-LintBicep
