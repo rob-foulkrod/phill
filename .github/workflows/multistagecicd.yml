@@ -112,6 +112,13 @@ jobs:
     needs:
     - build-Publish
     runs-on: ubuntu-latest
+    outputs:
+      webAppName: ${{ steps.DeployBicep.outputs.webAppName }}
+      webAppUrl: ${{ steps.DeployBicep.outputs.webAppUrl }}
+      location: ${{ steps.DeployBicep.outputs.location }}
+      resourceGroupName: ${{ steps.DeployBicep.outputs.resourceGroupName }}
+      resourceGroupId: ${{ steps.DeployBicep.outputs.resourceGroupId }}
+      
     permissions:
       id-token: write
       contents: read
@@ -145,15 +152,18 @@ jobs:
       run: pwsh -File "${{ runner.workspace }}/infra/deploy.ps1"
       shell: pwsh
       working-directory: "${{ runner.workspace }}/infra/"
+      
     - name: Print Environment Variables
       run: printenv
       shell: bash
 
     - name: Deploy App To Test
       uses: azure/webapps-deploy@v3.0.0
+      
       with:
-        app-name: "${{ env.DeployBicep_webAppName }}"
-        package: "${{ runner.workspace }}/app/*.zip"
+        app-name: "${{ steps.DeployBicep.outputs.webAppName }}"
+        package: "${{ runner.workspace }}/app/"
+
   deployToProd-webDeployToProd:
     name: Deploy To Prod
     needs:
