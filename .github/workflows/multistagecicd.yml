@@ -127,7 +127,7 @@ jobs:
       id-token: write
       contents: read
     environment:
-      name: "${{ env.validationEnvironmentName }}"
+      name: test
     if: github.RUN_NUMBER == 1
     steps:
     - name: checkout
@@ -163,7 +163,7 @@ jobs:
       id-token: write
       contents: read
     environment:
-      name: "${{ env.productionEnvironmentName }}"
+      name: prod
     if: (success() && env.isMain == 'true') && github.RUN_NUMBER == 1
     steps:
     - name: checkout
