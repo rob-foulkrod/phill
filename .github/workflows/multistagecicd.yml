@@ -107,10 +107,10 @@ jobs:
       with:
         name: infra
         path: "./infra"
-    - name: Upload app folder
-      uses: actions/upload-artifact@v4.1.0
+    - name: Upload artifact for deployment job
+      uses: actions/upload-artifact@v2
       with:
-        name: app
+        name: webapp
         path: "${{ runner.temp }}"
   deployToValidation-DeployToStaging:
     name: Deploy To test
@@ -127,9 +127,11 @@ jobs:
     - uses: actions/download-artifact@v4
       with:
         name: infra
-    - uses: actions/download-artifact@v4
+    - name: Download artifact from build job
+      uses: actions/download-artifact@v2
       with:
-        name: app
+        name: webapp
+        
     - name: where am I
       run: tree
       
