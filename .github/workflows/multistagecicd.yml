@@ -159,9 +159,10 @@ jobs:
 
     - name: Deploy App To Test
       uses: azure/webapps-deploy@v3.0.0
-      
+      env:
+        webAppName: webapp-aura-dev
       with:
-        app-name: "${{ steps.DeployBicep.outputs.webAppName }}"
+        app-name: "${{ env.webAppName }}"
         package: "${{ runner.workspace }}/app/"
 
   deployToProd-webDeployToProd:
