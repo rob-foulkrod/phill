@@ -164,7 +164,7 @@ jobs:
       contents: read
     environment:
       name: prod
-    if: (success() && env.isMain == 'true') && github.RUN_NUMBER == 1
+    if: github.ref == 'refs/heads/main'
     steps:
     - name: checkout
       uses: actions/checkout@v4.1.0
