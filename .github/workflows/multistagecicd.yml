@@ -119,13 +119,15 @@ jobs:
       name: test
     steps:
 
-    - uses: actions/download-artifact@v4
+    - name: Download bicep
+      uses: actions/download-artifact@v4
       with:
         name: infra
-    - name: Download artifact from build job
-      uses: actions/download-artifact@v2
+        
+    - name: Download application
+      uses: actions/download-artifact@v4
       with:
-        name: app
+        name: infra
         
     - name: where am I
       run: tree
