@@ -58,17 +58,7 @@ jobs:
       run: dotnet build ${{ env.solutionPath }} --configuration ${{ env.buildConfiguration }} --no-restore
     - name: Run tests with coverage threshold
       run: dotnet test ${{ env.testProjectPath }} --logger trx --results-directory "${{ runner.temp }}" --configuration ${{ env.buildConfiguration }} /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:Threshold=25 /p:ThresholdType=line
-    - name: Run tests with coverage threshold
-      uses: NasAmin/trx-parser@v0.5.0
-      if: always()
-      with:
-        TRX_PATH: "${{ runner.temp }}"
-        REPO_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-#     # This item has no matching transformer
-#     - task: PublishCodeCoverageResults@2
-#       displayName: Publish code coverage
-#       inputs:
-#         summaryFileLocation: "./src/Aura.Web.Tests/coverage.cobertura.xml"
+
   build-LintBicep:
     name: Lint Bicep Files
     needs:
