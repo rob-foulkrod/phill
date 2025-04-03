@@ -43,8 +43,6 @@ jobs:
       solutionPath: "./src/src.sln"
       testProjectPath: "./src/Aura.Web.Tests/Aura.Web.Tests.csproj"
     steps:
-    - name: checkout
-      uses: actions/checkout@v4.1.0
     - uses: actions/checkout@v4.1.0
       with:
         fetch-depth: 1
@@ -88,8 +86,7 @@ jobs:
     - build-CI
     runs-on: ubuntu-latest
     steps:
-    - name: checkout
-      uses: actions/checkout@v4.1.0
+
     - uses: actions/checkout@v4.1.0
       with:
         fetch-depth: 1
