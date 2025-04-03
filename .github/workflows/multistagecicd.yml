@@ -56,7 +56,11 @@ jobs:
       run: dotnet build ${{ env.solutionPath }} --configuration ${{ env.buildConfiguration }} --no-restore
     - name: Run tests with coverage threshold
       run: dotnet test ${{ env.testProjectPath }} --logger trx --results-directory "${{ runner.temp }}" --configuration ${{ env.buildConfiguration }} /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:Threshold=25 /p:ThresholdType=line
-   
+    - name: Upload Code Coverage Report
+      uses: coverallsapp/github-action@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
   build-LintBicep:
     name: Lint Bicep Files
     runs-on: ubuntu-latest
