@@ -21,3 +21,9 @@ Write-Host "##vso[task.setvariable variable=webAppUrl;isoutput=true]$webAppUrl"
 Write-Host "##vso[task.setvariable variable=location;isoutput=true]$location"
 Write-Host "##vso[task.setvariable variable=resourceGroupName;isoutput=true]$resourceGroupName"
 Write-Host "##vso[task.setvariable variable=resourceGroupId;isoutput=true]$resourceGrouId"
+
+echo "webAppName=$webAppName" >> $GITHUB_ENV
+echo "webAppUrl=$webAppUrl" >> $GITHUB_ENV
+echo "location=$location" >> $GITHUB_ENV
+echo "resourceGroupName=$resourceGroupName" >> $GITHUB_ENV
+echo "resourceGroupId=$resourceGrouId" >> $GITHUB_ENV
