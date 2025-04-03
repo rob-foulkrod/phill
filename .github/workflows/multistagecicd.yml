@@ -94,8 +94,7 @@ jobs:
       with:
         dotnet-version: 9.x
     - name: Production Complilation
-      run: dotnet publish ${{ env.app_BuildProjects }} -c Release /p:WebPublishMethod=Package /p:PackageLocation=${{ runner.temp }}
-
+      run: dotnet publish ${{ env.app_BuildProjects }} -c Release -o ${{ runner.temp }}
       
     - name: Upload Artifact
       if: success() || failure()
@@ -112,7 +111,7 @@ jobs:
       uses: actions/upload-artifact@v4.1.0
       with:
         name: app
-        path: "${{ runner.temp }}/*.zip"
+        path: "${{ runner.temp }}"
   deployToValidation-DeployToStaging:
     name: Deploy To test
     needs:
