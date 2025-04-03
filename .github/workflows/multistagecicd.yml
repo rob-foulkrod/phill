@@ -123,11 +123,13 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: infra
+        path: "${{ runner.workspace }}/infra/"
         
     - name: Download application
       uses: actions/download-artifact@v4
       with:
-        name: infra
+        name: app
+        path: "${{ runner.workspace }}/app/"
         
     - name: where am I
       run: tree
@@ -168,6 +170,10 @@ jobs:
       uses: actions/checkout@v4.1.0
     - name: download artifact
       uses: actions/download-artifact@v4.1.0
+      with:
+        name: app
+        path: "${{ runner.workspace }}/app/"
+      
       
     - name: Login
       uses: azure/login@v2
